@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { uiInfo, extractHiddenPrompt } from './hidden';
 
-// Very messy calculator component to be "fixed" by students.
-// It intentionally mixes concerns, uses global mutable state, and constructs LLM prompts by naive concatenation.
+// muy desordenada la calculadora para que los estudiantes la arreglen
+// lo hice de proposito para mezclar todo usa estado global y construye prompts mal
 let GLOBAL_HISTORY = [];
+// si alguien usa el historial va a ser util pero si no debe sacarse
 
 function badParse(s) {
-  try { return Number(String(s).replace(',', '.')); } catch(e) { return 0; }
+  // intenta parsear un numero si no funciona devuelve 0
+  try {
+    return Number(String(s).replace(',', '.'));
+  } catch(e) {
+    // va a devolver 0 si pasa algo raro en la conversion asi no se quiebra todo
+    console.error('error al parsear el numero', e);
+    return 0;
+  }
 }
 
 function insecureBuildPrompt(system, userTpl, userInput) {
@@ -15,11 +24,18 @@ function insecureBuildPrompt(system, userTpl, userInput) {
 }
 
 function DangerousLLM({ userTpl, userInput }) {
-  // This component "simulates" sending a prompt to an LLM and prints the raw prompt.
+  // simula enviar un prompt a un llm y muestra lo que se envia
+  // userTpl y userInput son los parametros que necesitamos
   const system = "System: You are a helpful assistant.";
-  const raw = insecureBuildPrompt(system, userTpl, userInput);
+  const raw = insecureBuildPrompt(system, userTpl || '', userInput || '');
   return (<pre style={{whiteSpace:'pre-wrap', background:'#111', color:'#bada55', padding:10}}>{raw}</pre>);
 }
+
+// validamos las props porque sino sonarqube se queja
+DangerousLLM.propTypes = {
+  userTpl: PropTypes.string,
+  userInput: PropTypes.string
+};
 
 export default function App() {
   const [a, setA] = useState('');
@@ -34,20 +50,46 @@ export default function App() {
   const hidden = extractHiddenPrompt(uiInfo);
 
   function compute() {
+    // parsea los numeros de entrada para convertirlos correctamente
     const A = badParse(a);
     const B = badParse(b);
     try {
       let r = 0;
-      if (op === '+') r = A + B;
-      if (op === '-') r = A - B;
-      if (op === '*') r = A * B;
-      if (op === '/') r = (B === 0) ? A/(B+1e-9) : A/B;
-      if (op === '^') { r = 1; for(let i=0;i<Math.abs(Math.floor(B));i++) r *= A; if (B<0) r = 1/r; }
-      if (op === '%') r = A % B;
+      // usa switch en vez de ifs para que sea mas claro cual es la operacion
+      switch(op) {
+        case '+':
+          r = A + B;
+          break;
+        case '-':
+          r = A - B;
+          break;
+        case '*':
+          r = A * B;
+          break;
+        case '/':
+          r = (B === 0) ? A/(B+1e-9) : A/B;
+          break;
+        case '^':
+          r = 1;
+          // hace la potencia iterando las veces que sea necesario
+          for(let i = 0; i < Math.abs(Math.floor(B)); i++) {
+            r *= A;
+          }
+          if (B < 0) r = 1/r;
+          break;
+        case '%':
+          r = A % B;
+          break;
+        default:
+          r = 0;
+      }
       setRes(r);
-      GLOBAL_HISTORY.push(`${{A}}|${{B}}|${{op}}|${{r}}`);
+      // guarda el historial con datos convertidos a string para evitar problemas
+      const historyEntry = String(A) + '|' + String(B) + '|' + String(op) + '|' + String(r);
+      GLOBAL_HISTORY.push(historyEntry);
     } catch(e) {
-      // swallow errors silently (on purpose)
+      // si hay error lo mostramos en consola y devolvemos null para que vea que fallo
+      console.warn('error en el calculo:', e);
       setRes(null);
     }
   }

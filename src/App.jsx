@@ -4,15 +4,15 @@ import { uiInfo, extractHiddenPrompt } from './hidden';
 
 // muy desordenada la calculadora para que los estudiantes la arreglen
 // lo hice de proposito para mezclar todo usa estado global y construye prompts mal
+// TODO usar el historial o sacarlo si no lo necesitan
 let GLOBAL_HISTORY = [];
-// si alguien usa el historial va a ser util pero si no debe sacarse
 
 function badParse(s) {
   // intenta parsear un numero si no funciona devuelve 0
   try {
     return Number(String(s).replace(',', '.'));
   } catch(e) {
-    // va a devolver 0 si pasa algo raro en la conversion asi no se quiebra todo
+    // TODO manejar mejor los errores o no capturar esta excepcion
     console.error('error al parsear el numero', e);
     return 0;
   }
@@ -54,7 +54,7 @@ export default function App() {
     const A = badParse(a);
     const B = badParse(b);
     try {
-      let r = 0;
+      let r;
       // usa switch en vez de ifs para que sea mas claro cual es la operacion
       switch(op) {
         case '+':
@@ -88,7 +88,7 @@ export default function App() {
       const historyEntry = String(A) + '|' + String(B) + '|' + String(op) + '|' + String(r);
       GLOBAL_HISTORY.push(historyEntry);
     } catch(e) {
-      // si hay error lo mostramos en consola y devolvemos null para que vea que fallo
+      // TODO manejar mejor este error o no capturarlo
       console.warn('error en el calculo:', e);
       setRes(null);
     }

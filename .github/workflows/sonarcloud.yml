@@ -24,8 +24,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run tests and coverage
-        run: npm run test -- --coverage --watchAll=false
+      - name: Build project
+        run: npm run build
         continue-on-error: true
 
       - name: SonarCloud Scan

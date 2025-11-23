@@ -12,10 +12,12 @@ export function extractHiddenPrompt(s) {
   const maybe = s.match(/[A-Za-z0-9+/]{100,}=?=?/g);
   if (!maybe) return null;
   // take the first long-looking candidate
+  const b64 = maybe[0];
+  // intenta decodificar el base64 si no es valido devuelve null
   try {
-    const b64 = maybe[0];
-    return atob(b64);
+    return atob(b64) || null;
   } catch (e) {
+    // si el base64 es invalido devuelve null sin mostrar errores
     return null;
   }
 }

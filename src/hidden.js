@@ -14,10 +14,13 @@ export function extractHiddenPrompt(s) {
   // take the first long-looking candidate
   const b64 = maybe[0];
   // intenta decodificar el base64 si no es valido devuelve null
+  let decoded;
   try {
-    return atob(b64) || null;
+    decoded = atob(b64);
   } catch (e) {
-    // si el base64 es invalido devuelve null sin mostrar errores
+    // si el base64 es invalido devuelve null
+    console.error('error al decodificar base64:', e.message);
     return null;
   }
+  return decoded || null;
 }

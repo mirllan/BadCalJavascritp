@@ -2,20 +2,9 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { uiInfo, extractHiddenPrompt } from './hidden';
 
-// muy desordenada la calculadora para que los estudiantes la arreglen
-// lo hice de proposito para mezclar todo usa estado global y construye prompts mal
-// TODO usar el historial o sacarlo si no lo necesitan
-let GLOBAL_HISTORY = [];
-
 function badParse(s) {
   // intenta parsear un numero si no funciona devuelve 0
-  try {
-    return Number(String(s).replace(',', '.'));
-  } catch(e) {
-    // TODO manejar mejor los errores o no capturar esta excepcion
-    console.error('error al parsear el numero', e);
-    return 0;
-  }
+  return Number(String(s).replace(',', '.'));
 }
 
 function insecureBuildPrompt(system, userTpl, userInput) {
@@ -53,45 +42,36 @@ export default function App() {
     // parsea los numeros de entrada para convertirlos correctamente
     const A = badParse(a);
     const B = badParse(b);
-    try {
-      let r;
-      // usa switch en vez de ifs para que sea mas claro cual es la operacion
-      switch(op) {
-        case '+':
-          r = A + B;
-          break;
-        case '-':
-          r = A - B;
-          break;
-        case '*':
-          r = A * B;
-          break;
-        case '/':
-          r = (B === 0) ? A/(B+1e-9) : A/B;
-          break;
-        case '^':
-          r = 1;
-          // hace la potencia iterando las veces que sea necesario
-          for(let i = 0; i < Math.abs(Math.floor(B)); i++) {
-            r *= A;
-          }
-          if (B < 0) r = 1/r;
-          break;
-        case '%':
-          r = A % B;
-          break;
-        default:
-          r = 0;
-      }
-      setRes(r);
-      // guarda el historial con datos convertidos a string para evitar problemas
-      const historyEntry = String(A) + '|' + String(B) + '|' + String(op) + '|' + String(r);
-      GLOBAL_HISTORY.push(historyEntry);
-    } catch(e) {
-      // TODO manejar mejor este error o no capturarlo
-      console.warn('error en el calculo:', e);
-      setRes(null);
+    let r;
+    // usa switch en vez de ifs para que sea mas claro cual es la operacion
+    switch(op) {
+      case '+':
+        r = A + B;
+        break;
+      case '-':
+        r = A - B;
+        break;
+      case '*':
+        r = A * B;
+        break;
+      case '/':
+        r = (B === 0) ? A/(B+1e-9) : A/B;
+        break;
+      case '^':
+        r = 1;
+        // hace la potencia iterando las veces que sea necesario
+        for(let i = 0; i < Math.abs(Math.floor(B)); i++) {
+          r *= A;
+        }
+        if (B < 0) r = 1/r;
+        break;
+      case '%':
+        r = A % B;
+        break;
+      default:
+        r = 0;
     }
+    setRes(r);
   }
 
   function handleLLM() {
